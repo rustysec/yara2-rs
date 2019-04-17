@@ -1,0 +1,17 @@
+[package]
+name = "yara2"
+version = "0.1.0"
+authors = ["russ <russ@infocyte.com>"]
+edition = "2018"
+keywords = ["yara"]
+categories = ["api-bindings"]
+
+[dependencies]
+err-derive = "*"
+lazy_static = "*"
+yara-sys = "*"
+
+[features]
+default = ["static"]
+dynamic = []
+static = []
