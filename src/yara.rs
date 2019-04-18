@@ -1,5 +1,4 @@
-extern crate yara_sys;
-
+use crate::bindings;
 use crate::callbacks::scan_callback;
 use crate::{Error, Result, Rule};
 use std::ffi::CString;
@@ -16,7 +15,7 @@ lazy_static! {
 /// # Example
 ///
 /// ```
-/// use yara2_rs::*;
+/// use yara2::*;
 /// let mut yara = Yara::new().unwrap();
 /// yara.add_rule_str(r#"rule is_awesome {
 ///  strings:
@@ -29,19 +28,19 @@ lazy_static! {
 /// assert_eq!(results.len(), 1);
 /// ```
 pub struct Yara {
-    compiler: *mut yara_sys::YR_COMPILER,
-    rules: Option<*mut yara_sys::YR_RULES>,
+    compiler: *mut bindings::YR_COMPILER,
+    rules: Option<*mut bindings::YR_RULES>,
 }
 
 impl Drop for Yara {
     fn drop(&mut self) {
         if let Some(rules) = self.rules {
             unsafe {
-                yara_sys::yr_rules_destroy(rules);
+                bindings::yr_rules_destroy(rules);
             }
         }
         unsafe {
-            yara_sys::yr_compiler_destroy(self.compiler);
+            bindings::yr_compiler_destroy(self.compiler);
         }
         self.finalize().unwrap();
     }
@@ -54,15 +53,15 @@ impl Yara {
     /// Is thread safe.
     pub fn new() -> Result<Yara> {
         let _guard = INIT_MUTEX.lock();
-        let result = unsafe { yara_sys::yr_initialize() };
+        let result = unsafe { bindings::yr_initialize() };
 
-        yara_sys::Error::from_code(result)
+        Error::from_code(result)
             .map_err(|e| Error::from(e))
             .and_then(|_| {
-                let mut pointer: *mut yara_sys::YR_COMPILER = ptr::null_mut();
-                let result = unsafe { yara_sys::yr_compiler_create(&mut pointer) };
+                let mut pointer: *mut bindings::YR_COMPILER = ptr::null_mut();
+                let result = unsafe { bindings::yr_compiler_create(&mut pointer) };
 
-                yara_sys::Error::from_code(result)
+                Error::from_code(result)
                     .map(|()| Yara {
                         compiler: pointer,
                         rules: None,
@@ -77,8 +76,8 @@ impl Yara {
     /// Is thread safe.
     fn finalize(&self) -> Result<()> {
         let _guard = INIT_MUTEX.lock();
-        let result = unsafe { yara_sys::yr_finalize() };
-        yara_sys::Error::from_code(result).map_err(|e| Error::from(e))
+        let result = unsafe { bindings::yr_finalize() };
+        Error::from_code(result).map_err(|e| Error::from(e))
     }
 
     /// Add a rule to yara engine
@@ -94,8 +93,8 @@ impl Yara {
     pub fn add_rule_str(&mut self, rule: &str, namespace: Option<&str>) -> Result<()> {
         match self.rules {
             Some(_) => Err(Error::AlreadyCompiled),
-            None => yara_sys::Error::from_code(unsafe {
-                yara_sys::yr_compiler_add_string(
+            None => Error::from_code(unsafe {
+                bindings::yr_compiler_add_string(
                     self.compiler,
                     CString::new(rule).unwrap().as_ptr(),
                     namespace.map_or_else(
@@ -112,8 +111,8 @@ impl Yara {
     fn check_rules(&mut self) -> Result<()> {
         if let None = self.rules {
             let mut pointer = ptr::null_mut();
-            yara_sys::Error::from_code(unsafe {
-                yara_sys::yr_compiler_get_rules(self.compiler, &mut pointer)
+            Error::from_code(unsafe {
+                bindings::yr_compiler_get_rules(self.compiler, &mut pointer)
             })
             .map_err(|e| Error::from(e))?;
             self.rules = Some(pointer);
@@ -130,8 +129,8 @@ impl Yara {
 
         if let Some(rules) = self.rules {
             let mut results = Vec::<Rule>::new();
-            yara_sys::Error::from_code(unsafe {
-                yara_sys::yr_rules_scan_mem(
+            Error::from_code(unsafe {
+                bindings::yr_rules_scan_mem(
                     rules,
                     data.as_ptr(),
                     data.len(),

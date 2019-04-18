@@ -10,12 +10,21 @@ pub enum Error {
     InvalidRule,
     #[error(display = "Too many rules")]
     TooManyRules,
-    #[error(display = "Unknown yara error")]
-    UnknownYaraError(yara_sys::Error),
+    #[error(display = "Unknown yara error: {}", _0)]
+    UnknownYaraError(i32),
 }
 
-impl From<yara_sys::Error> for Error {
-    fn from(error: yara_sys::Error) -> Self {
+impl From<i32> for Error {
+    fn from(error: i32) -> Self {
         Error::UnknownYaraError(error)
+    }
+}
+
+impl Error {
+    pub fn from_code(code: i32) -> Result<()> {
+        match code {
+            0 => Ok(()),
+            _ => Err(Error::from(code)),
+        }
     }
 }

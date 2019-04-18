@@ -5,13 +5,17 @@ authors = ["russ <russ@infocyte.com>"]
 edition = "2018"
 keywords = ["yara"]
 categories = ["api-bindings"]
+description = "Easy Rust bindings for VirusTotal/yara"
 
 [dependencies]
 err-derive = "*"
 lazy_static = "*"
-yara-sys = "*"
+
+[build-dependencies]
+bindgen = "*"
 
 [features]
 default = ["static"]
 dynamic = []
 static = []
+with-bindgen = []
