@@ -1,6 +1,6 @@
 use crate::bindings;
 use crate::callbacks::scan_callback;
-use crate::{Error, Result, Rule};
+pub use crate::{Error, Result, Rule};
 use std::ffi::CString;
 use std::os::raw::c_void;
 use std::ptr;
