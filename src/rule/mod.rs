@@ -6,9 +6,10 @@ use self::metadata::*;
 use self::tag::*;
 use self::yr_string::*;
 use crate::bindings;
+use serde::Serialize;
 use std::ffi::CStr;
 
-#[derive(Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct Rule {
     pub identifier: String,
     pub namespace: String,

@@ -1,9 +1,10 @@
 use crate::bindings;
 use crate::rule::get_tidx;
+use serde::Serialize;
 use std::ffi::CStr;
 use std::marker;
 
-#[derive(Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct Match {
     /// Offset of the match within the scanning area.
     pub offset: usize,
@@ -13,7 +14,7 @@ pub struct Match {
     pub data: Vec<u8>,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct YrString {
     /// Name of the string, with the '$'.
     pub identifier: String,

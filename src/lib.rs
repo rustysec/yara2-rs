@@ -4,6 +4,7 @@
 #[macro_use]
 extern crate lazy_static;
 extern crate err_derive;
+extern crate serde;
 
 mod bindings;
 mod callbacks;

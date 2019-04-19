@@ -1,14 +1,15 @@
 use crate::bindings;
+use serde::Serialize;
 use std::ffi::CStr;
 use std::marker;
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct Metadata {
     pub identifier: String,
     pub value: MetadataValue,
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub enum MetadataValue {
     Integer(i64),
     String(String),
