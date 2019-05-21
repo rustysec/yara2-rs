@@ -18,7 +18,7 @@ Everything begins with the Yara struct, from there everything is simple:
 ```rust
 extern crate yara2;
 
-let mut yara = yara2::Yara::new();
+let mut yara = yara2::Yara::new().unwrap();
 ```
 
 Adding rules is a simple process:
@@ -26,17 +26,17 @@ Adding rules is a simple process:
 ```rust
 yara.add_rule_str(r#"rule is_awesome {
 strings:
-$rust = "rust" nocase
+    $rust = "rust" nocase
 
 condition:
-$rust
+    $rust
 }"#, None).unwrap();
 ```
 
 Then you can scan some data:
 
 ```rust
-let matches = yara.can_memory(b"data blob containing rust signature");
+let matches = yara.scan_memory(b"data blob containing rust signature");
 ```
 
 ## About
