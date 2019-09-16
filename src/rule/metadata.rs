@@ -57,7 +57,7 @@ impl<'a> Iterator for MetadataIterator<'a> {
     fn next(&mut self) -> Option<Self::Item> {
         if !self.head.is_null() {
             let meta = unsafe { &*self.head };
-            let t = MetaType::from_code(meta.type_).unwrap();
+            let t = MetaType::from_code(meta.type__).unwrap();
             if t != MetaType::Null {
                 self.head = unsafe { self.head.offset(1) };
                 return Some(Metadata::from(meta));
@@ -74,7 +74,7 @@ impl From<&bindings::YR_META> for Metadata {
             .to_str()
             .unwrap()
             .to_owned();
-        let t = MetaType::from_code(meta.type_).unwrap();
+        let t = MetaType::from_code(meta.type__).unwrap();
         let value = match t {
             MetaType::Boolean => MetadataValue::Boolean(meta.integer != 0),
             MetaType::Integer => MetadataValue::Integer(meta.integer),

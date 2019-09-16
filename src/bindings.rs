@@ -672,7 +672,7 @@ fn bindgen_test_layout_YR_NAMESPACE() {
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct YR_META {
-    pub type_: i32,
+    pub type__: i32,
     pub integer: i64,
     pub __bindgen_anon_1: YR_META__bindgen_ty_1,
     pub __bindgen_anon_2: YR_META__bindgen_ty_2,
