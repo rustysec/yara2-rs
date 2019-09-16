@@ -37,6 +37,8 @@ fn main() {
             .to_string()
             .replacen("match_:", "match__:", 1)
             .replacen("match:", "match_", 1)
+            .replacen("pe_:", "pe__:", 1)
+            .replacen("pe:", "pe_", 1)
             .replace("_YR_MATCH", "YR_MATCH");
         let mut file = File::create(out_path).expect("couldn't open file!");
         file.write_all(data.as_bytes())
@@ -50,36 +52,47 @@ fn main() {
                 .status();
         }
 
-        if !Path::new("yara/libyara/.libs").exists() {
-            let mut args = vec!["--without-crypto"];
+        let mut args = vec!["--without-crypto", "--enable-static", "--disable-shared"];
 
-            if target.contains("musl") {
-                env::set_var("CC", "musl-gcc");
-            }
-
-            if target.contains("windows-gnu") {
-                if target.contains("x86_64") {
-                    args.push("--host=x86_64-w64-mingw32");
-                } else {
-                    args.push("--host=i686-w64-mingw32");
-                }
-            }
-
-            Command::new("./bootstrap.sh")
-                .current_dir("./yara")
-                .output()
-                .unwrap();
-
-            Command::new("./configure")
-                .args(&args)
-                .current_dir("./yara")
-                .output()
-                .unwrap();
-
-            Command::new("make").current_dir("./yara").output().unwrap();
+        if target.contains("musl") {
+            env::set_var("CC", "musl-gcc");
         }
 
+        if target.contains("windows-gnu") {
+            if target.contains("x86_64") {
+                args.push("--host=x86_64-w64-mingw32");
+            } else {
+                args.push("--host=i686-w64-mingw32");
+            }
+        }
+
+        Command::new("./bootstrap.sh")
+            .current_dir("./yara")
+            .output()
+            .unwrap();
+
+        Command::new("./configure")
+            .args(&args)
+            .current_dir("./yara")
+            .output()
+            .unwrap();
+
+        Command::new("make").current_dir("./yara").output().unwrap();
+
         println!("cargo:rustc-link-lib=static=yara");
+        if target.contains("windows") {
+            Command::new("x86_64-w64-mingw32-ar")
+                .args(&[
+                    "rcs",
+                    "libyara/.libs/libyara.a",
+                    "libyara/.libs/*.o",
+                    "yara.o",
+                    "threading.o",
+                ])
+                .current_dir("./yara")
+                .output()
+                .unwrap();
+        }
         println!("cargo:rustc-link-search=./yara/libyara/.libs");
     } else {
         println!("cargo:rustc-link-lib=yara");
