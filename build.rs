@@ -64,12 +64,26 @@ fn main() {
             env::set_var("CC", "musl-gcc");
         }
 
-        if target.contains("windows-gnu") {
+        let host = if target.contains("windows-gnu") {
             if target.contains("x86_64") {
-                args.push("--host=x86_64-w64-mingw32");
+                Some(String::from("--host=x86_64-w64-mingw32"))
             } else {
-                args.push("--host=i686-w64-mingw32");
+                Some(String::from("--host=i686-w64-mingw32"))
             }
+        } else if target.contains("apple") || target.contains("macos") || target.contains("darwin")
+        {
+            if let Ok(version) = env::var("MACOS_VERSION") {
+                env::set_var("CC", format!("x86_64-apple-darwin{}-cc", version));
+                Some(format!("--host=x86_64-apple-darwin{}", version))
+            } else {
+                None
+            }
+        } else {
+            None
+        };
+
+        if let Some(ref host) = host {
+            args.push(host.as_ref());
         }
 
         Command::new("./bootstrap.sh")
