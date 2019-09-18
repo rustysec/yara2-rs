@@ -13,10 +13,10 @@ lazy_static = "*"
 serde = { version = "*", features = ["derive"] }
 
 [build-dependencies]
-bindgen = "*"
+bindgen = { version = "*", default-features = false, optional = true }
 
 [features]
 default = ["static"]
 dynamic = []
 static = []
-with-bindgen = []
+with-bindgen = [ "bindgen" ]

@@ -1,7 +1,10 @@
+#[cfg(feature = "with-bindgen")]
 extern crate bindgen;
 
 use std::env;
+#[cfg(feature = "with-bindgen")]
 use std::fs::File;
+#[cfg(feature = "with-bindgen")]
 use std::io::prelude::*;
 use std::path::{Path, PathBuf};
 use std::process::Command;
@@ -9,7 +12,8 @@ use std::process::Command;
 fn main() {
     let target = env::var("TARGET").expect("TARGET was not set");
 
-    if cfg!(feature = "with-bindgen") {
+    #[cfg(feature = "with-bindgen")]
+    {
         let bindings = bindgen::Builder::default()
             // The input header we would like to generate
             // bindings for.
@@ -150,6 +154,8 @@ fn main() {
                 .output()
                 .unwrap();
             println!("cargo:rustc-link-lib=yara");
+        } else if target.contains("apple") {
+            println!("cargo:rustc-link-lib=static=yara");
         } else {
             println!("cargo:rustc-link-lib=static=yara");
         }
@@ -157,5 +163,4 @@ fn main() {
     } else {
         println!("cargo:rustc-link-lib=yara");
     }
-    //assert!(false)
 }
