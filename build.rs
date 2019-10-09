@@ -32,6 +32,8 @@ fn main() {
             .whitelist_function("yr_compiler_get_rules")
             .clang_arg("-I./yara/libyara/include")
             .trust_clang_mangling(false)
+            // disable layout tests due to cross platform requirements
+            .layout_tests(false)
             // Finish the builder and generate the bindings.
             .generate()
             // Unwrap the Result and panic on failure.
@@ -102,63 +104,7 @@ fn main() {
             .unwrap();
 
         Command::new("make").current_dir("./yara").output().unwrap();
-
-        if target.contains("windows") {
-            env::set_var("CC", "x86_64-w64-mingw32-cc");
-            Command::new("x86_64-w64-mingw32-ar")
-                .args(&vec![
-                    "rcs",
-                    "libyara/.libs/libyara.a",
-                    "libyara/libyara.o",
-                    /*
-                    "libyara/ahocorasick.o",
-                    "libyara/arena.o",
-                    "libyara/atoms.o",
-                    "libyara/bitmask.o",
-                    "libyara/compiler.o",
-                    "libyara/endian.o",
-                    "libyara/exec.o",
-                    "libyara/exefiles.o",
-                    "libyara/filemap.o",
-                    "libyara/grammar.o",
-                    "libyara/hash.o",
-                    "libyara/hex_grammar.o",
-                    "libyara/hex_lexer.o",
-                    "libyara/lexer.o",
-                    "libyara/mem.o",
-                    "libyara/modules.o",
-                    "libyara/modules/pe.o",
-                    "libyara/modules/elf.o",
-                    "libyara/modules/hash.o",
-                    "libyara/modules/math.o",
-                    "libyara/modules/pe_utils.o",
-                    "libyara/modules/time.o",
-                    "libyara/object.o",
-                    "libyara/parser.o",
-                    "libyara/proc.o",
-                    "libyara/re_grammar.o",
-                    "libyara/re_lexer.o",
-                    "libyara/re.o",
-                    "libyara/rules.o",
-                    "libyara/scanner.o",
-                    "libyara/scan.o",
-                    "libyara/sizedstr.o",
-                    "libyara/stack.o",
-                    "libyara/stopwatch.o",
-                    "libyara/stream.o",
-                    "libyara/strutils.o",
-                    "libyara/threading.o",
-                    */
-                ])
-                .current_dir("./yara")
-                .output()
-                .unwrap();
-            println!("cargo:rustc-link-lib=yara");
-        } else if target.contains("apple") {
-            println!("cargo:rustc-link-lib=static=yara");
-        } else {
-            println!("cargo:rustc-link-lib=static=yara");
-        }
+        println!("cargo:rustc-link-lib=static=yara");
         println!("cargo:rustc-link-search=./yara/libyara/.libs");
     } else {
         println!("cargo:rustc-link-lib=yara");
