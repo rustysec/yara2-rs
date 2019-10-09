@@ -61,7 +61,7 @@ fn main() {
                 .args(&["clean"])
                 .current_dir("./yara")
                 .output()
-                .unwrap();
+                .expect("Cannot clean yara folder");
         }
 
         let mut args = vec!["--without-crypto", "--enable-static", "--disable-shared"];
@@ -95,15 +95,18 @@ fn main() {
         Command::new("./bootstrap.sh")
             .current_dir("./yara")
             .output()
-            .unwrap();
+            .expect("Cannot bootstrap yara folder");
 
         Command::new("./configure")
             .args(&args)
             .current_dir("./yara")
             .output()
-            .unwrap();
+            .expect("Cannot configure yara!");
 
-        Command::new("make").current_dir("./yara").output().unwrap();
+        Command::new("make")
+            .current_dir("./yara")
+            .output()
+            .expect("Cannot make yara!");
         println!("cargo:rustc-link-lib=static=yara");
         println!("cargo:rustc-link-search=./yara/libyara/.libs");
     } else {

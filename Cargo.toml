@@ -8,7 +8,7 @@ categories = ["api-bindings"]
 description = "Easy Rust bindings for VirusTotal/yara"
 
 [dependencies]
-err-derive = "*"
+err-derive = "0.1.6"
 lazy_static = "*"
 serde = { version = "*", features = ["derive"] }
 
