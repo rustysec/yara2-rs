@@ -558,6 +558,16 @@ extern "C" {
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
+    pub fn yr_rules_scan_fd(
+        rules: *mut YR_RULES,
+        fd: ::std::os::raw::c_int,
+        flags: ::std::os::raw::c_int,
+        callback: YR_CALLBACK_FUNC,
+        user_data: *mut ::std::os::raw::c_void,
+        timeout: ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
     pub fn yr_rules_destroy(rules: *mut YR_RULES) -> ::std::os::raw::c_int;
 }
 extern "C" {

@@ -6,7 +6,7 @@ use std::env;
 use std::fs::File;
 #[cfg(feature = "with-bindgen")]
 use std::io::prelude::*;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::process::Command;
 
 fn main() {
@@ -14,6 +14,12 @@ fn main() {
 
     #[cfg(feature = "with-bindgen")]
     {
+        if !Path::new("yara/.git").exists() {
+            let _ = Command::new("git")
+                .args(&["submodule", "update", "--init"])
+                .status();
+        }
+
         let bindings = bindgen::Builder::default()
             // The input header we would like to generate
             // bindings for.
@@ -26,6 +32,7 @@ fn main() {
             .whitelist_function("yr_finalize")
             .whitelist_function("yr_rules_destroy")
             .whitelist_function("yr_rules_scan_mem")
+            .whitelist_function("yr_rules_scan_fd")
             .whitelist_function("yr_compiler_add_string")
             .whitelist_function("yr_compiler_create")
             .whitelist_function("yr_compiler_destroy")
@@ -34,6 +41,8 @@ fn main() {
             .trust_clang_mangling(false)
             // disable layout tests due to cross platform requirements
             .layout_tests(false)
+            // format the output
+            .rustfmt_bindings(true)
             // Finish the builder and generate the bindings.
             .generate()
             // Unwrap the Result and panic on failure.
@@ -45,7 +54,11 @@ fn main() {
             .replacen("match:", "match_", 1)
             .replacen("pe_:", "pe__:", 1)
             .replacen("pe:", "pe_", 1)
-            .replace("_YR_MATCH", "YR_MATCH");
+            .replace("_YR_MATCH", "YR_MATCH")
+            .replace(
+                "pub match_: *mut YR_AC_MATCH",
+                "pub match__: *mut YR_AC_MATCH",
+            );
         let mut file = File::create(out_path).expect("couldn't open file!");
         file.write_all(data.as_bytes())
             .expect("couldn't write bindings.rs!");

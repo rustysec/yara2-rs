@@ -1,8 +1,15 @@
 use crate::bindings;
 use crate::callbacks::scan_callback;
 pub use crate::{Error, Result, Rule};
+use std::convert::AsRef;
 use std::ffi::CString;
+use std::fs::File;
 use std::os::raw::c_void;
+#[cfg(unix)]
+use std::os::unix::io::AsRawFd;
+#[cfg(windows)]
+use std::os::windows::io::AsRawHandle;
+use std::path::Path;
 use std::ptr;
 use std::sync::Mutex;
 
@@ -144,6 +151,68 @@ impl Yara {
             .map(|_| results)
         } else {
             Ok(Vec::new())
+        }
+    }
+
+    /// Scan a file
+    ///
+    /// # Arguments
+    /// `path` - path to file to scan
+    pub fn scan_file<P: AsRef<Path>>(&mut self, path: P) -> Result<Vec<Rule>> {
+        self.check_rules()?;
+
+        if let Some(rules) = self.rules {
+            let mut results = Vec::<Rule>::new();
+            File::open(&path)
+                .map_err(|_| Error::InvalidFile(path.as_ref().to_str().unwrap().to_string()))
+                .and_then(|ref file| unsafe {
+                    Error::from_code(self.rules_scan_raw(&mut *rules, file, 10, &mut results))
+                        .map(|_| results)
+                })
+        } else {
+            Ok(Vec::new())
+        }
+    }
+
+    #[cfg(unix)]
+    pub fn rules_scan_raw(
+        &self,
+        rules: &mut bindings::YR_RULES,
+        file: &File,
+        timeout: i32,
+        results: &mut Vec<Rule>,
+    ) -> i32 {
+        let fd = file.as_raw_fd();
+        unsafe {
+            bindings::yr_rules_scan_fd(
+                rules,
+                fd,
+                0,
+                Some(scan_callback),
+                results as *mut Vec<_> as *mut c_void,
+                timeout,
+            )
+        }
+    }
+
+    #[cfg(windows)]
+    pub fn rules_scan_raw(
+        &self,
+        rules: &mut bindings::YR_RULES,
+        file: &File,
+        timeout: i32,
+        results: &mut Vec<Rule>,
+    ) -> i32 {
+        let handle = file.as_raw_handle();
+        unsafe {
+            bindings::yr_rules_scan_fd(
+                rules,
+                handle as _,
+                0,
+                Some(scan_callback),
+                results as *mut Vec<_> as *mut c_void,
+                timeout,
+            )
         }
     }
 }

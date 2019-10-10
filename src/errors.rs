@@ -10,6 +10,8 @@ pub enum Error {
     InvalidRule,
     #[error(display = "Too many rules")]
     TooManyRules,
+    #[error(display = "Cannot open file: {}", _0)]
+    InvalidFile(String),
     #[error(display = "Unknown yara error: {}", _0)]
     UnknownYaraError(i32),
 }
