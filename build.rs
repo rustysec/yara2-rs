@@ -11,7 +11,7 @@ use std::process::Command;
 
 fn check_for_err<T: std::convert::AsRef<str>>(step: T, output: Vec<u8>) {
     if output.len() > 0 {
-        panic!(
+        println!(
             "step {} failed: {}",
             step.as_ref(),
             String::from_utf8_lossy(&output)
