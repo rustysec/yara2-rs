@@ -6,6 +6,7 @@ edition = "2018"
 keywords = ["yara"]
 categories = ["api-bindings"]
 description = "Easy Rust bindings for VirusTotal/yara"
+build = "build.rs"
 
 [dependencies]
 err-derive = "0.1.6"

@@ -9,6 +9,16 @@ use std::io::prelude::*;
 use std::path::Path;
 use std::process::Command;
 
+fn check_for_err<T: std::convert::AsRef<str>>(step: T, output: Vec<u8>) {
+    if output.len() > 0 {
+        panic!(
+            "step {} failed: {}",
+            step.as_ref(),
+            String::from_utf8_lossy(&output)
+        );
+    }
+}
+
 fn main() {
     let target = env::var("TARGET").expect("TARGET was not set");
 
@@ -70,13 +80,13 @@ fn main() {
                 .args(&["submodule", "update", "--init"])
                 .status();
         } else {
-            let _ = Command::new("make")
+            let _clean = Command::new("make")
                 .args(&["clean"])
                 .current_dir("./yara")
                 .output()
                 .expect("Cannot clean yara folder");
 
-            let _ = Command::new("make")
+            let _distclean = Command::new("make")
                 .args(&["distclean"])
                 .current_dir("./yara")
                 .output()
@@ -122,10 +132,15 @@ fn main() {
             .output()
             .expect("Cannot configure yara!");
 
-        Command::new("make")
-            .current_dir("./yara")
-            .output()
-            .expect("Cannot make yara!");
+        check_for_err(
+            "make",
+            Command::new("make")
+                .current_dir("./yara")
+                .output()
+                .expect("Cannot make yara!")
+                .stderr,
+        );
+
         println!("cargo:rustc-link-lib=static=yara");
         println!("cargo:rustc-link-search=./yara/libyara/.libs");
     } else {
