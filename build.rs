@@ -96,7 +96,11 @@ fn main() {
         let mut args = vec!["--without-crypto", "--enable-static", "--disable-shared"];
 
         if target.contains("musl") {
-            env::set_var("CC", "musl-gcc");
+            if target.contains("x86_64") {
+                args.push("--host=x86_64-linux-musl");
+            } else {
+                args.push("--host=i686-linux-musl");
+            }
         }
 
         let host = if target.contains("windows-gnu") {
