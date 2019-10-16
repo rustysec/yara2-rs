@@ -75,6 +75,12 @@ fn main() {
                 .current_dir("./yara")
                 .output()
                 .expect("Cannot clean yara folder");
+
+            let _ = Command::new("make")
+                .args(&["distclean"])
+                .current_dir("./yara")
+                .output()
+                .expect("Cannot distclean yara folder");
         }
 
         let mut args = vec!["--without-crypto", "--enable-static", "--disable-shared"];
