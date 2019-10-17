@@ -96,47 +96,32 @@ fn main() {
         }
 
         let mut args = vec!["--without-crypto", "--enable-static", "--disable-shared"];
+        args.push(&target);
 
-        if target.contains("musl") {
-            if target.contains("x86_64") {
-                args.push("--host=x86_64-linux-musl");
-            } else {
-                args.push("--host=i686-linux-musl");
-            }
-        }
+        println!("building with: {:?}", args);
 
-        let host = if target.contains("windows-gnu") {
-            if target.contains("x86_64") {
-                Some(String::from("--host=x86_64-w64-mingw32"))
-            } else {
-                Some(String::from("--host=i686-w64-mingw32"))
-            }
-        } else if target.contains("apple") || target.contains("macos") || target.contains("darwin")
-        {
-            if let Ok(version) = env::var("MACOS_VERSION") {
-                env::set_var("CC", format!("x86_64-apple-darwin{}-cc", version));
-                Some(format!("--host=x86_64-apple-darwin{}", version))
-            } else {
-                None
-            }
-        } else {
-            None
-        };
+        println!(
+            "bootstrap: {}",
+            String::from_utf8_lossy(
+                &Command::new("./bootstrap.sh")
+                    .current_dir("./yara")
+                    .output()
+                    .expect("Cannot bootstrap yara folder")
+                    .stdout
+            )
+        );
 
-        if let Some(ref host) = host {
-            args.push(host.as_ref());
-        }
-
-        Command::new("./bootstrap.sh")
-            .current_dir("./yara")
-            .output()
-            .expect("Cannot bootstrap yara folder");
-
-        Command::new("./configure")
-            .args(&args)
-            .current_dir("./yara")
-            .output()
-            .expect("Cannot configure yara!");
+        println!(
+            "configure: {}",
+            String::from_utf8_lossy(
+                &Command::new("./configure")
+                    .args(&args)
+                    .current_dir("./yara")
+                    .output()
+                    .expect("Cannot configure yara!")
+                    .stdout
+            )
+        );
 
         check_for_err(
             "make",
