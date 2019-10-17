@@ -24,6 +24,8 @@ fn main() {
 
     #[cfg(feature = "with-bindgen")]
     {
+        use std::path::PathBuf;
+
         if !Path::new("yara/.git").exists() {
             let _ = Command::new("git")
                 .args(&["submodule", "update", "--init"])
