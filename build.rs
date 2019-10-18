@@ -9,16 +9,6 @@ use std::io::prelude::*;
 use std::path::Path;
 use std::process::Command;
 
-fn check_for_err<T: std::convert::AsRef<str>>(step: T, output: Vec<u8>) {
-    if output.len() > 0 {
-        println!(
-            "step {} failed: {}",
-            step.as_ref(),
-            String::from_utf8_lossy(&output)
-        );
-    }
-}
-
 fn main() {
     let target = env::var("TARGET").expect("TARGET was not set");
 
@@ -95,42 +85,32 @@ fn main() {
                 .expect("Cannot distclean yara folder");
         }
 
-        let mut args = vec!["--without-crypto", "--enable-static", "--disable-shared"];
-        args.push(&target);
+        let mut args = vec![
+            String::from("--without-crypto"),
+            String::from("--enable-static"),
+            String::from("--disable-shared"),
+        ];
+        args.push(format!("--host={}", target));
 
-        println!("building with: {:?}", args);
+        if let Ok(cross_cc) = env::var("CROSS_CC") {
+            args.push(format!("CC={}", cross_cc));
+        }
 
-        println!(
-            "bootstrap: {}",
-            String::from_utf8_lossy(
-                &Command::new("./bootstrap.sh")
-                    .current_dir("./yara")
-                    .output()
-                    .expect("Cannot bootstrap yara folder")
-                    .stdout
-            )
-        );
+        Command::new("./bootstrap.sh")
+            .current_dir("./yara")
+            .output()
+            .expect("Cannot bootstrap yara folder");
 
-        println!(
-            "configure: {}",
-            String::from_utf8_lossy(
-                &Command::new("./configure")
-                    .args(&args)
-                    .current_dir("./yara")
-                    .output()
-                    .expect("Cannot configure yara!")
-                    .stdout
-            )
-        );
+        Command::new("./configure")
+            .args(&args)
+            .current_dir("./yara")
+            .output()
+            .expect("Cannot configure yara!");
 
-        check_for_err(
-            "make",
-            Command::new("make")
-                .current_dir("./yara")
-                .output()
-                .expect("Cannot make yara!")
-                .stderr,
-        );
+        Command::new("make")
+            .current_dir("./yara")
+            .output()
+            .expect("Cannot make yara!");
 
         println!("cargo:rustc-link-lib=static=yara");
         println!("cargo:rustc-link-search=./yara/libyara/.libs");
