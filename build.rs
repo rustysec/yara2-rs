@@ -90,10 +90,8 @@ fn main() {
             String::from("--enable-static"),
             String::from("--disable-shared"),
         ];
-        args.push(format!("--host={}", target));
-
-        if let Ok(cross_cc) = env::var("CROSS_CC") {
-            args.push(format!("CC={}", cross_cc));
+        if let Ok(cross_host) = env::var("CROSS_HOST") {
+            args.push(format!("--host={}", cross_host));
         }
 
         Command::new("./bootstrap.sh")
