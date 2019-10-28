@@ -10,8 +10,6 @@ use std::path::Path;
 use std::process::Command;
 
 fn main() {
-    let target = env::var("TARGET").expect("TARGET was not set");
-
     #[cfg(feature = "with-bindgen")]
     {
         use std::path::PathBuf;
@@ -89,7 +87,9 @@ fn main() {
             String::from("--without-crypto"),
             String::from("--enable-static"),
             String::from("--disable-shared"),
+            String::from("--with-pic"),
         ];
+
         if let Ok(cross_host) = env::var("CROSS_HOST") {
             args.push(format!("--host={}", cross_host));
         }
