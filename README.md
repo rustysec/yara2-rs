@@ -42,6 +42,14 @@ Then you can scan some data:
 let matches = yara.scan_memory(b"data blob containing rust signature");
 ```
 
+## Cross Compiling
+If you're using [osxcross](https://github.com/tpoechtrager/osxcross) it might be helpful to pass the
+`CC` environmental variable to ensure cargo picks the right one.
+
+```sh
+CC=x86_64-apple-darwin19-cc cargo build --examples
+```
+
 ## About
 This crate does contain unsafe code, but efforts are taken to try and ensure
 it will not cause runtime errors. The default behavior is to statically link
