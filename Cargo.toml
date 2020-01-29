@@ -1,12 +1,13 @@
 [package]
 name = "yara2"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["russ <russ@infocyte.com>"]
 edition = "2018"
 keywords = ["yara"]
 categories = ["api-bindings"]
 description = "Easy Rust bindings for VirusTotal/yara"
 build = "build.rs"
+readme = "README.md"
 
 [dependencies]
 err-derive = "0.1.6"
@@ -15,6 +16,7 @@ serde = { version = "*", features = ["derive"] }
 
 [build-dependencies]
 bindgen = { version = "*", default-features = false, optional = true, features = [ "which-rustfmt" ] }
+cc = "1"
 
 [features]
 default = ["static"]

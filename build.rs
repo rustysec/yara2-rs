@@ -1,7 +1,6 @@
 #[cfg(feature = "with-bindgen")]
 extern crate bindgen;
 
-use std::env;
 #[cfg(feature = "with-bindgen")]
 use std::fs::File;
 #[cfg(feature = "with-bindgen")]
@@ -69,50 +68,154 @@ fn main() {
             let _ = Command::new("git")
                 .args(&["submodule", "update", "--init"])
                 .status();
+        }
+
+        let target = std::env::var("TARGET").unwrap();
+
+        let mut build = static_compile_get_files();
+
+        if target.contains("windows") {
+            println!("Building Windows");
+            build
+                .file("./yara/libyara/modules/hash.c")
+                .define("_FILE_OFFSET_BITS", Some("64"))
+                .define("STDC_HEADERS", Some("1"))
+                .define("HAVE_SYS_TYPES_H", Some("1"))
+                .define("HAVE_SYS_STAT_H", Some("1"))
+                .define("HAVE_STDLIB_H", Some("1"))
+                .define("HAVE_STRING_H", Some("1"))
+                .define("HAVE_MEMORY_H", Some("1"))
+                .define("HAVE_STRINGS_H", Some("1"))
+                .define("HAVE_INTTYPES_H", Some("1"))
+                .define("HAVE_STDINT_H", Some("1"))
+                .define("HAVE_UNISTD_H", Some("1"))
+                .define("HAVE_LIBM", Some("1"))
+                .define("HAVE_LIBM", Some("1"))
+                .define("HAVE__MKGMTIME", None)
+                .define("HAVE_WINCRYPT_H", Some("1"))
+                .define("HAVE_STDBOOL_H", Some("1"))
+                .define("HAVE_CLOCK_GETTIME", Some("1"))
+                .define("HAVE_SCAN_PROC_IMPL", Some("1"))
+                .define("USE_WINDOWS_PROC", None)
+                .define("HASH_MODULE", None)
+                .compile("libyara");
+        } else if target.contains("apple") {
+            println!("Building MacOS");
+            build
+                .define("YYTEXT_POINTER", Some("1"))
+                .define("STDC_HEADERS", Some("1"))
+                .define("HAVE_SYS_TYPES_H", Some("1"))
+                .define("HAVE_SYS_STAT_H", Some("1"))
+                .define("HAVE_STDLIB_H", Some("1"))
+                .define("HAVE_STRING_H", Some("1"))
+                .define("HAVE_MEMORY_H", Some("1"))
+                .define("HAVE_STRINGS_H", Some("1"))
+                .define("HAVE_INTTYPES_H", Some("1"))
+                .define("HAVE_STDINT_H", Some("1"))
+                .define("HAVE_UNISTD_H", Some("1"))
+                .define("HAVE_DLFCN_H", Some("1"))
+                .define("HAVE_LIBM", Some("1"))
+                .define("HAVE_MEMMEM", Some("1"))
+                .define("HAVE_TIMEGM", Some("1"))
+                .define("HAVE_STDBOOL_H", Some("1"))
+                .define("HAVE_CLOCK_GETTIME", Some("1"))
+                .define("HAVE_SCAN_PROC_IMPL", Some("1"))
+                .define("USE_MACH_PROC", None)
+                .compile("yara");
         } else {
-            let _clean = Command::new("make")
-                .args(&["clean"])
-                .current_dir("./yara")
-                .output()
-                .expect("Cannot clean yara folder");
-
-            let _distclean = Command::new("make")
-                .args(&["distclean"])
-                .current_dir("./yara")
-                .output()
-                .expect("Cannot distclean yara folder");
+            println!("Building Linux");
+            build
+                .file("./yara/libyara/modules/magic.c")
+                .define("YYTEXT_POINTER", Some("1"))
+                .define("STDC_HEADERS", Some("1"))
+                .define("HAVE_SYS_TYPES_H", Some("1"))
+                .define("HAVE_SYS_STAT_H", Some("1"))
+                .define("HAVE_STDLIB_H", Some("1"))
+                .define("HAVE_STRING_H", Some("1"))
+                .define("HAVE_MEMORY_H", Some("1"))
+                .define("HAVE_STRINGS_H", Some("1"))
+                .define("HAVE_INTTYPES_H", Some("1"))
+                .define("HAVE_STDINT_H", Some("1"))
+                .define("HAVE_UNISTD_H", Some("1"))
+                .define("HAVE_DLFCN_H", Some("1"))
+                .define("HAVE_LIBM", Some("1"))
+                .define("HAVE_LIBM", Some("1"))
+                .define("HAVE_MEMMEM", Some("1"))
+                .define("HAVE_TIMEGM", Some("1"))
+                .define("HAVE_STDBOOL_H", Some("1"))
+                .define("HAVE_CLOCK_GETTIME", Some("1"))
+                .define("HAVE_SCAN_PROC_IMPL", Some("1"))
+                .define("USE_LINUX_PROC", None)
+                .compile("libyara");
         }
-
-        let mut args = vec![
-            String::from("--without-crypto"),
-            String::from("--enable-static"),
-            String::from("--disable-shared"),
-            String::from("--with-pic"),
-        ];
-
-        if let Ok(cross_host) = env::var("CROSS_HOST") {
-            args.push(format!("--host={}", cross_host));
-        }
-
-        Command::new("./bootstrap.sh")
-            .current_dir("./yara")
-            .output()
-            .expect("Cannot bootstrap yara folder");
-
-        Command::new("./configure")
-            .args(&args)
-            .current_dir("./yara")
-            .output()
-            .expect("Cannot configure yara!");
-
-        Command::new("make")
-            .current_dir("./yara")
-            .output()
-            .expect("Cannot make yara!");
-
-        println!("cargo:rustc-link-lib=static=yara");
-        println!("cargo:rustc-link-search=./yara/libyara/.libs");
     } else {
         println!("cargo:rustc-link-lib=yara");
+        //println!("cargo:rustc-link-lib=ssl");
     }
+}
+
+fn make_it(it: &cc::Build) -> cc::Build {
+    it.clone()
+}
+
+fn static_compile_get_files() -> cc::Build {
+    make_it(
+        cc::Build::new()
+            .warnings(false)
+            .file("./yara/libyara/arena.c")
+            .file("./yara/libyara/re.c")
+            .file("./yara/libyara/grammar.c")
+            .file("./yara/libyara/atoms.c")
+            .file("./yara/libyara/filemap.c")
+            .file("./yara/libyara/hex_grammar.c")
+            .file("./yara/libyara/exefiles.c")
+            .file("./yara/libyara/ahocorasick.c")
+            .file("./yara/libyara/rules.c")
+            .file("./yara/libyara/endian.c")
+            .file("./yara/libyara/compiler.c")
+            .file("./yara/libyara/stack.c")
+            .file("./yara/libyara/strutils.c")
+            .file("./yara/libyara/stopwatch.c")
+            .file("./yara/libyara/parser.c")
+            .file("./yara/libyara/re_lexer.c")
+            .file("./yara/libyara/exec.c")
+            .file("./yara/libyara/hex_lexer.c")
+            .file("./yara/libyara/stream.c")
+            .file("./yara/libyara/threading.c")
+            .file("./yara/libyara/bitmask.c")
+            .file("./yara/libyara/object.c")
+            .file("./yara/libyara/proc.c")
+            .file("./yara/libyara/sizedstr.c")
+            .file("./yara/libyara/scan.c")
+            .file("./yara/libyara/scanner.c")
+            .file("./yara/libyara/lexer.c")
+            .file("./yara/libyara/mem.c")
+            .file("./yara/libyara/modules.c")
+            .file("./yara/libyara/re_grammar.c")
+            .file("./yara/libyara/proc/none.c")
+            .file("./yara/libyara/proc/linux.c")
+            .file("./yara/libyara/proc/mach.c")
+            .file("./yara/libyara/proc/windows.c")
+            .file("./yara/libyara/proc/openbsd.c")
+            .file("./yara/libyara/proc/freebsd.c")
+            .file("./yara/libyara/libyara.c")
+            .file("./yara/libyara/hash.c")
+            //.file("./yara/libyara/modules/cuckoo.c")
+            .file("./yara/libyara/modules/elf.c")
+            .file("./yara/libyara/modules/macho.c")
+            .file("./yara/libyara/modules/pe.c")
+            .file("./yara/libyara/modules/pe_utils.c")
+            .file("./yara/libyara/modules/math.c")
+            .file("./yara/libyara/modules/tests.c")
+            .file("./yara/libyara/modules/dex.c")
+            .file("./yara/libyara/modules/dotnet.c")
+            .file("./yara/libyara/modules/demo.c")
+            //.file("./yara/libyara/modules/magic.c")
+            .file("./yara/libyara/modules/time.c")
+            //.file("./yara/libyara/modules/hash.c")
+            .include("./yara")
+            .include("./yara/libyara")
+            .include("./yara/libyara/include")
+            .static_flag(true),
+    )
 }
