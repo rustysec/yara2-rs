@@ -125,7 +125,7 @@ fn main() {
         } else {
             println!("Building Linux");
             build
-                .file("./yara/libyara/modules/magic.c")
+                //.file("./yara/libyara/modules/magic.c")
                 .define("YYTEXT_POINTER", Some("1"))
                 .define("STDC_HEADERS", Some("1"))
                 .define("HAVE_SYS_TYPES_H", Some("1"))
