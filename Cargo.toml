@@ -10,10 +10,10 @@ build = "build.rs"
 readme = "README.md"
 
 [dependencies]
-err-derive = "0.1.6"
+err-derive = "0.1"
 lazy_static = "*"
 serde = { version = "*", features = ["derive"] }
-quote = "=1.0.2"
+quote = "=1.0.1"
 
 [build-dependencies]
 bindgen = { version = "*", default-features = false, optional = true, features = [ "which-rustfmt" ] }
