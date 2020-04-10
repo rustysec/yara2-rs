@@ -1,4 +1,7 @@
-# Yara2
+yara2
+=====
+[![Build Status](https://github.com/rustysec/yara2-rs/workflows/Build/badge.svg)](https://github.com/rustysec/yara2-rs/actions)
+
 Simple rust bindings bindings for [yara](https://github.com/VirusTotal/yara).
 A lot of implementation details were borrowed from/inspired by
 [yara-rust](https://github.com/Hugal31/yara-rust) with some minor differences.
@@ -13,7 +16,7 @@ It is currently not feature complete. Some features targeted:
 - [ ] Multi-threading option
 
 ## Usage
-Everything begins with the Yara struct, from there everything is simple:
+Everything begins with the `Yara` structure, from there it is simple:
 
 ```rust
 extern crate yara2;
@@ -39,10 +42,18 @@ Then you can scan some data:
 let matches = yara.scan_memory(b"data blob containing rust signature");
 ```
 
+## Cross Compiling
+If you're using [osxcross](https://github.com/tpoechtrager/osxcross) it might be helpful to pass the
+`CC` environmental variable to ensure cargo picks the right one.
+
+```sh
+CC=x86_64-apple-darwin19-cc cargo build --examples
+```
+
 ## About
 This crate does contain unsafe code, but efforts are taken to try and ensure
 it will not cause runtime errors. The default behavior is to statically link
-to libyara at compile time. If this behavior is not desired, dynamic linking
+to `libyara` at compile time. If this behavior is not desired, dynamic linking
 can be enabled:
 
 ```toml
