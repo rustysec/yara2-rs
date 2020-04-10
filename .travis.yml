@@ -1,0 +1,12 @@
+language: rust
+rust:
+    - stable
+matrix:
+    fast_finish: true
+    include:
+        - name: "MacOS"
+          rust: stable
+          env: TARGET=x86_64-apple-darwin
+          os: osx
+          osx_image: xcode10.1
+
