@@ -35,9 +35,7 @@ impl From<&bindings::YR_RULE> for Rule {
             namespace: ns,
             tags: TagIterator::from(rule).collect(),
             metadata: MetadataIterator::from(rule).collect(),
-            strings: YrStringIterator::from(rule)
-                .map(|s| YrString::from(s))
-                .collect(),
+            strings: YrStringIterator::from(rule).map(YrString::from).collect(),
         }
     }
 }

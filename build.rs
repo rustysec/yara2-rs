@@ -36,6 +36,7 @@ fn main() {
             .whitelist_function("yr_compiler_create")
             .whitelist_function("yr_compiler_destroy")
             .whitelist_function("yr_compiler_get_rules")
+            .whitelist_function("yr_compiler_set_callback")
             .clang_arg("-I./yara/libyara/include")
             .trust_clang_mangling(false)
             // disable layout tests due to cross platform requirements

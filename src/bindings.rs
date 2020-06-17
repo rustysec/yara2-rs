@@ -5,6 +5,7 @@ pub const META_TYPE_NULL: u32 = 0;
 pub const META_TYPE_INTEGER: u32 = 1;
 pub const META_TYPE_STRING: u32 = 2;
 pub const META_TYPE_BOOLEAN: u32 = 3;
+pub type size_t = ::std::os::raw::c_ulong;
 pub type __uint8_t = ::std::os::raw::c_uchar;
 pub type __uint16_t = ::std::os::raw::c_ushort;
 pub type __int32_t = ::std::os::raw::c_int;
@@ -64,8 +65,8 @@ pub type YR_RELOC = _YR_RELOC;
 pub struct _YR_ARENA_PAGE {
     pub new_address: *mut u8,
     pub address: *mut u8,
-    pub size: usize,
-    pub used: usize,
+    pub size: size_t,
+    pub used: size_t,
     pub reloc_list_head: *mut YR_RELOC,
     pub reloc_list_tail: *mut YR_RELOC,
     pub next: *mut _YR_ARENA_PAGE,
@@ -84,7 +85,7 @@ pub type YR_ARENA = _YR_ARENA;
 #[derive(Debug, Copy, Clone)]
 pub struct _YR_HASH_TABLE_ENTRY {
     pub key: *mut ::std::os::raw::c_void,
-    pub key_length: usize,
+    pub key_length: size_t,
     pub ns: *mut ::std::os::raw::c_char,
     pub value: *mut ::std::os::raw::c_void,
     pub next: *mut _YR_HASH_TABLE_ENTRY,
@@ -534,6 +535,13 @@ extern "C" {
     pub fn yr_compiler_destroy(compiler: *mut YR_COMPILER);
 }
 extern "C" {
+    pub fn yr_compiler_set_callback(
+        compiler: *mut YR_COMPILER,
+        callback: YR_COMPILER_CALLBACK_FUNC,
+        user_data: *mut ::std::os::raw::c_void,
+    );
+}
+extern "C" {
     pub fn yr_compiler_add_string(
         compiler: *mut YR_COMPILER,
         rules_string: *const ::std::os::raw::c_char,
@@ -550,7 +558,7 @@ extern "C" {
     pub fn yr_rules_scan_mem(
         rules: *mut YR_RULES,
         buffer: *const u8,
-        buffer_size: usize,
+        buffer_size: size_t,
         flags: ::std::os::raw::c_int,
         callback: YR_CALLBACK_FUNC,
         user_data: *mut ::std::os::raw::c_void,

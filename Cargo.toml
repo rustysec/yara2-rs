@@ -11,7 +11,7 @@ readme = "README.md"
 
 [dependencies]
 err-derive = "0.1"
-lazy_static = "*"
+lazy_static = "1"
 serde = { version = "*", features = ["derive"] }
 quote = "=1.0.1"
 

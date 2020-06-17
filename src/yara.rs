@@ -62,19 +62,25 @@ impl Yara {
         let _guard = INIT_MUTEX.lock();
         let result = unsafe { bindings::yr_initialize() };
 
-        Error::from_code(result)
-            .map_err(|e| Error::from(e))
-            .and_then(|_| {
-                let mut pointer: *mut bindings::YR_COMPILER = ptr::null_mut();
-                let result = unsafe { bindings::yr_compiler_create(&mut pointer) };
+        Error::from_code(result).map_err(Error::from).and_then(|_| {
+            let mut pointer: *mut bindings::YR_COMPILER = ptr::null_mut();
+            let result = unsafe { bindings::yr_compiler_create(&mut pointer) };
 
-                Error::from_code(result)
-                    .map(|()| Yara {
-                        compiler: pointer,
-                        rules: None,
-                    })
-                    .map_err(|e| Error::from(e))
-            })
+            unsafe {
+                bindings::yr_compiler_set_callback(
+                    pointer,
+                    Some(crate::errors::error_callback),
+                    std::ptr::null_mut(),
+                );
+            }
+
+            Error::from_code(result)
+                .map(|()| Yara {
+                    compiler: pointer,
+                    rules: None,
+                })
+                .map_err(Error::from)
+        })
     }
 
     /// De-initialize the Yara library
@@ -84,7 +90,7 @@ impl Yara {
     fn finalize(&self) -> Result<()> {
         let _guard = INIT_MUTEX.lock();
         let result = unsafe { bindings::yr_finalize() };
-        Error::from_code(result).map_err(|e| Error::from(e))
+        Error::from_code(result).map_err(Error::from)
     }
 
     /// Add a rule to yara engine
@@ -100,28 +106,36 @@ impl Yara {
     pub fn add_rule_str(&mut self, rule: &str, namespace: Option<&str>) -> Result<()> {
         match self.rules {
             Some(_) => Err(Error::AlreadyCompiled),
-            None => Error::from_code(unsafe {
-                bindings::yr_compiler_add_string(
+            None => unsafe {
+                let c_rule = CString::new(rule).unwrap();
+                match bindings::yr_compiler_add_string(
                     self.compiler,
-                    CString::new(rule).unwrap().as_ptr(),
-                    namespace.map_or_else(
-                        || ptr::null(),
-                        |ns| CString::new(ns).unwrap_or_default().as_ptr(),
-                    ),
-                )
-            })
-            .map_err(|e| Error::from(e)),
+                    c_rule.as_ptr(),
+                    namespace.map_or_else(ptr::null, |ns| {
+                        CString::new(ns).unwrap_or_default().as_ptr()
+                    }),
+                ) {
+                    0 => Ok(()),
+                    count => {
+                        let messages = (0..count + 1)
+                            .map(|_| crate::errors::get_last_error())
+                            .filter_map(|err| err)
+                            .collect::<Vec<_>>();
+                        Err(Error::Multiple(messages))
+                    }
+                }
+            },
         }
     }
 
     /// Compiles rules if needed
     fn check_rules(&mut self) -> Result<()> {
-        if let None = self.rules {
+        if self.rules.is_none() {
             let mut pointer = ptr::null_mut();
             Error::from_code(unsafe {
                 bindings::yr_compiler_get_rules(self.compiler, &mut pointer)
             })
-            .map_err(|e| Error::from(e))?;
+            .map_err(Error::from)?;
             self.rules = Some(pointer);
         }
         Ok(())
@@ -140,14 +154,14 @@ impl Yara {
                 bindings::yr_rules_scan_mem(
                     rules,
                     data.as_ptr(),
-                    data.len(),
+                    data.len() as _,
                     0,
                     Some(scan_callback),
                     &mut results as *mut Vec<_> as *mut c_void,
                     10,
                 )
             })
-            .map_err(|e| Error::from(e))
+            .map_err(Error::from)
             .map(|_| results)
         } else {
             Ok(Vec::new())
