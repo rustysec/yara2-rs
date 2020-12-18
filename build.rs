@@ -32,6 +32,7 @@ fn main() {
             .whitelist_function("yr_rules_destroy")
             .whitelist_function("yr_rules_scan_mem")
             .whitelist_function("yr_rules_scan_fd")
+            .whitelist_function("yr_rules_scan_proc")
             .whitelist_function("yr_compiler_add_string")
             .whitelist_function("yr_compiler_create")
             .whitelist_function("yr_compiler_destroy")

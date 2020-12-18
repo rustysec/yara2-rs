@@ -12,7 +12,8 @@ This library is under active development and, as such, is still a work in progre
 It is currently not feature complete. Some features targeted:
 
 - [ ] Loading signatures from file system
-- [ ] Scanning files, instead of just data blobs
+- [X] Scanning files, instead of just data blobs
+- [X] Scanning running processes
 - [ ] Multi-threading option
 
 ## Usage
