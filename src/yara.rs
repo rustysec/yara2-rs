@@ -188,6 +188,32 @@ impl Yara {
         }
     }
 
+    /// Scan a running process
+    ///
+    /// # Arguments
+    /// `pid` - process id to scan
+    pub fn scan_process(&mut self, pid: std::os::raw::c_int) -> Result<Vec<Rule>> {
+        self.check_rules()?;
+
+        if let Some(rules) = self.rules {
+            let mut results = Vec::<Rule>::new();
+            Error::from_code(unsafe {
+                bindings::yr_rules_scan_proc(
+                    rules,
+                    pid,
+                    0,
+                    Some(scan_callback),
+                    &mut results as *mut Vec<_> as *mut c_void,
+                    10,
+                )
+            })
+            .map_err(Error::from)
+            .map(|_| results)
+        } else {
+            Ok(Vec::new())
+        }
+    }
+
     #[cfg(unix)]
     pub fn rules_scan_raw(
         &self,

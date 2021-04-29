@@ -4,7 +4,7 @@ use yara2::*;
 
 pub fn main() -> Result<()> {
     let rule = r#"
-import pe
+import "pe"
 rule SamSam_Ransomware_Latest
 {
 meta:
@@ -46,7 +46,7 @@ condition:
     ( uint16(0) == 0x5a4d and filesize < 100KB and pe.imphash() == "f34d5f2d4577ed6d9ceec516c1f5a744" and ( 8 of them ) and all of ($op*)) or ( all of them )
 }"#;
     let mut yara = Yara::new()?;
-    yara.add_rule_str(rule, None)?;
+    yara.add_rule_str(rule.trim(), None)?;
     let none = yara.scan_memory(b"this is a string")?;
     let some = yara.scan_memory(b"this is a rust string")?;
 
